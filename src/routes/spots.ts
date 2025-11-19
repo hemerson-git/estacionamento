@@ -1,0 +1,90 @@
+import { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { ZodTypeProvider } from "fastify-type-provider-zod";
+import { StatusVaga, TipoVaga } from "@prisma/client";
+
+export async function spotRoutes(app: FastifyInstance) {
+  app.withTypeProvider<ZodTypeProvider>().get(
+    "/",
+    {
+      schema: {
+        params: z.object({
+          empresaId: z.string().transform(Number),
+        }),
+      },
+    },
+    async (request) => {
+      const spots = await prisma.vaga.findMany({
+        where: {
+          empresa: {
+            id_empresa: Number(request.params.empresaId),
+          },
+        },
+      });
+      return spots;
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().post(
+    "/",
+    {
+      schema: {
+        body: z.object({
+          numero: z.number(),
+          type: z
+            .string()
+            .refine((value) => value === "CARRO" || value === "MOTO", {
+              message: "Tipo inválido. Deve ser 'CARRO' ou 'MOTO'.",
+            }),
+          status: z
+            .string()
+            .nullable()
+            .refine(
+              (value) =>
+                value === undefined || value === "LIVRE" || value === "OCUPADA",
+              {
+                message: "Status inválido. Deve ser 'LIVRE' ou 'OCUPADA'.",
+              }
+            ),
+        }),
+        params: z.object({
+          empresaId: z.string().transform(Number),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const data = request.body;
+
+      const existingSpot = await prisma.vaga.findFirst({
+        where: {
+          empresaId: Number(request.params.empresaId),
+          numero: data.numero,
+        },
+      });
+
+      if (existingSpot) {
+        return reply.status(400).send({
+          message: "Número de vaga já existe para essa empresa.",
+        });
+      }
+
+      const spot = await prisma.vaga.create({
+        data: {
+          empresaId: Number(request.params.empresaId),
+          numero: data.numero,
+          tipo: data.type as TipoVaga,
+          status: data.status as StatusVaga | undefined,
+        },
+        select: {
+          id_vaga: true,
+          numero: true,
+          status: true,
+          tipo: true,
+        },
+      });
+
+      return reply.status(201).send(spot);
+    }
+  );
+}
