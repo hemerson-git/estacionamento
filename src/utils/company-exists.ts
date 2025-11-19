@@ -5,6 +5,13 @@ export const companyExists = async (cnpj: string) => {
     where: {
       cnpj,
     },
+    include: {
+      _count: {
+        select: {
+          vagas: true,
+        },
+      },
+    },
   });
 
   return existCompany;

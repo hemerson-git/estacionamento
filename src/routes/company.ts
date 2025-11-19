@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { companyExists } from "@/utils/company-exists";
+import { formatCompany } from "@/utils/format-company";
 
 const companySchema = {
   body: z.object({
@@ -93,6 +94,39 @@ export async function companyRoutes(app: FastifyInstance) {
       });
 
       return reply.status(204).send();
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    "/:id",
+    {
+      schema: {
+        params: z.object({
+          id: z.string(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const id = request.params.id;
+
+      const company = await prisma.empresa.findFirst({
+        where: {
+          id_empresa: Number(id),
+        },
+        include: {
+          _count: {
+            select: {
+              vagas: true,
+            },
+          },
+        },
+      });
+
+      if (!company) {
+        return reply.status(400).send({ error: "Empresa não está cadastrada" });
+      }
+
+      return formatCompany(company);
     }
   );
 }
