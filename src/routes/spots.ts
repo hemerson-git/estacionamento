@@ -194,7 +194,10 @@ export async function spotRoutes(app: FastifyInstance) {
           spotId: z.string().transform(Number),
         }),
         body: z.object({
-          placa: z.string(),
+          placa: z
+            .string()
+            .max(7, "Placa inválida. Deve ter no máximo 7 caracteres.")
+            .min(7, "Placa inválida. Deve ter no mínimo 7 caracteres."),
         }),
       },
     },
