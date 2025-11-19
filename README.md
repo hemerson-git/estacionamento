@@ -1,6 +1,6 @@
 # Digital Park
 
-## How to run
+## How to run 🏃‍♂️
 
 1. Clone the repository
 ```git clone https://github.com/hemerson-git/estacionamento.git```

@@ -185,4 +185,109 @@ export async function spotRoutes(app: FastifyInstance) {
       return reply.status(204).send();
     }
   );
+
+  app.withTypeProvider<ZodTypeProvider>().put(
+    "/:spotId/ocupar",
+    {
+      schema: {
+        params: z.object({
+          spotId: z.string().transform(Number),
+        }),
+        body: z.object({
+          placa: z.string(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const spotId = Number(request.params.spotId);
+      const data = request.body;
+
+      const existingSpot = await prisma.vaga.findFirst({
+        where: {
+          id_vaga: spotId,
+        },
+      });
+
+      if (!existingSpot) {
+        return reply.status(404).send({
+          message: "Vaga não encontrada.",
+        });
+      }
+
+      if (existingSpot.status === "OCUPADA") {
+        return reply.status(400).send({
+          message: "Vaga já está ocupada.",
+        });
+      }
+
+      const existingVehicle = await prisma.veiculo.findFirst({
+        where: {
+          placa: data.placa,
+        },
+      });
+
+      if (!existingVehicle) {
+        return reply.status(404).send({
+          message: "Veículo não encontrado.",
+        });
+      }
+
+      const horaEntrada = new Date();
+
+      await prisma.$transaction([
+        prisma.vaga.update({
+          where: {
+            id_vaga: spotId,
+          },
+          data: {
+            status: "OCUPADA",
+          },
+        }),
+        prisma.veiculo_vaga.create({
+          data: {
+            id_vaga: existingSpot.id_vaga,
+            id_veiculo: existingVehicle.id,
+            hora_entrada: horaEntrada,
+          },
+        }),
+      ]);
+
+      return reply.status(204).send({
+        message: "Vaga ocupada com sucesso.",
+        entrada: horaEntrada.toISOString(),
+      });
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().put(
+    "/:spotId/desocupar",
+    {
+      schema: {
+        params: z.object({
+          spotId: z.string().transform(Number),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const spotId = Number(request.params.spotId);
+
+      const existingSpot = await prisma.vaga.findFirst({
+        where: {
+          id_vaga: spotId,
+        },
+      });
+
+      if (!existingSpot) {
+        return reply.status(404).send({
+          message: "Vaga não encontrada.",
+        });
+      }
+
+      if (existingSpot.status === "LIVRE") {
+        return reply.status(400).send({
+          message: "Vaga já está livre.",
+        });
+      }
+    }
+  );
 }

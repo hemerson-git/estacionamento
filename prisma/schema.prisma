@@ -41,7 +41,7 @@ model Empresa {
 
 model Veiculo {
   id           Int    @id @default(autoincrement())
-  placa        String @db.Char(7)
+  placa        String @unique @db.Char(7)
   modelo       String @db.VarChar(50)
   cor          String @db.VarChar(50)
   nome_cliente String @db.VarChar(50)
