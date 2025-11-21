@@ -6,6 +6,7 @@ import {
   jsonSchemaTransform,
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import { jwtPlugin } from "./plugins/jwt";
 
 import { fastifySwagger } from "@fastify/swagger";
 import { fastifyCors } from "@fastify/cors";
@@ -44,6 +45,8 @@ app.register(ScalarApiReference, {
     title: "Parking IFBA API Docs",
   },
 });
+
+app.register(jwtPlugin);
 
 app.register(vehicleRoutes, { prefix: "/veiculos" });
 app.register(companyRoutes, { prefix: "/empresas" });

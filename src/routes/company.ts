@@ -17,10 +17,16 @@ const companySchema = {
 };
 
 export async function companyRoutes(app: FastifyInstance) {
-  app.get("/", async () => {
-    const companies = await prisma.empresa.findMany();
-    return companies;
-  });
+  app.get(
+    "/",
+    {
+      preHandler: app.authenticate,
+    },
+    async () => {
+      const companies = await prisma.empresa.findMany();
+      return companies;
+    }
+  );
 
   app.withTypeProvider<ZodTypeProvider>().post(
     "/",
@@ -41,6 +47,7 @@ export async function companyRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().put(
     "/:id",
     {
+      preHandler: app.authenticate,
       schema: {
         params: z.object({
           id: z.string(),
