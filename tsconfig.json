@@ -9,6 +9,10 @@
       "ESNext.Iterator"
     ],
     "module": "nodenext",
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
     "target": "es2022",
     "strict": true,
     "esModuleInterop": true,

@@ -20,7 +20,7 @@ enum TipoVaga {
 model Usuario {
   id_usuario Int    @id @default(autoincrement())
   nome       String @db.VarChar(50)
-  login      String @db.VarChar(20)
+  login      String @unique @db.VarChar(20)
   senhaHash  String @db.VarChar(200)
 
   @@map("usuario")

@@ -15,6 +15,7 @@ import ScalarApiReference from "@scalar/fastify-api-reference";
 import { vehicleRoutes } from "./routes/vehicle";
 import { companyRoutes } from "./routes/company";
 import { spotRoutes } from "./routes/spots";
+import { authRoutes } from "./routes/auth";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 const PORT = Number(process.env.INITIAL_PORT || 3333);
@@ -51,6 +52,7 @@ app.register(jwtPlugin);
 app.register(vehicleRoutes, { prefix: "/veiculos" });
 app.register(companyRoutes, { prefix: "/empresas" });
 app.register(spotRoutes, { prefix: "/:empresaId/vagas" });
+app.register(authRoutes, { prefix: "/auth" });
 
 app
   .listen({

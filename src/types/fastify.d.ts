@@ -1,7 +1,16 @@
-import "fastify";
+import "@fastify/jwt";
 
 declare module "fastify" {
   interface FastifyInstance {
-    authenticate(request: FastifyRequest, reply: FastifyReply): Promise<void>;
+    jwt: {
+      sign: (payload: any, options?: any) => string;
+      verify: (token: string, options?: any) => any;
+    };
+    authenticate: any;
+  }
+
+  interface FastifyRequest {
+    jwtVerify: () => Promise<any>;
+    user: any;
   }
 }
