@@ -255,7 +255,7 @@ export async function spotRoutes(app: FastifyInstance) {
         }),
       ]);
 
-      return reply.status(204).send({
+      return reply.status(200).send({
         message: "Vaga ocupada com sucesso.",
         entrada: horaEntrada.toISOString(),
       });
@@ -291,6 +291,48 @@ export async function spotRoutes(app: FastifyInstance) {
           message: "Vaga já está livre.",
         });
       }
+
+      const existingVehicle = await prisma.veiculo_vaga.findFirst({
+        where: {
+          id_vaga: spotId,
+        },
+      });
+
+      if (!existingVehicle) {
+        return reply.status(404).send({
+          message: "Nenhum veículo está na vaga.",
+        });
+      }
+
+      const horaSaida = new Date();
+
+      await prisma.$transaction([
+        prisma.vaga.update({
+          where: {
+            id_vaga: spotId,
+          },
+          data: {
+            status: "LIVRE",
+          },
+        }),
+        prisma.veiculo_vaga.update({
+          where: {
+            id_veiculo_id_vaga_hora_entrada: {
+              id_veiculo: existingVehicle.id_veiculo,
+              id_vaga: existingVehicle.id_vaga,
+              hora_entrada: existingVehicle.hora_entrada,
+            },
+          },
+          data: {
+            hora_saida: horaSaida,
+          },
+        }),
+      ]);
+
+      return reply.status(200).send({
+        message: "Vaga desocupada com sucesso.",
+        saida: horaSaida.toISOString(),
+      });
     }
   );
 }

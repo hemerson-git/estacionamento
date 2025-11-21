@@ -23,8 +23,17 @@ export async function companyRoutes(app: FastifyInstance) {
       preHandler: app.authenticate,
     },
     async () => {
-      const companies = await prisma.empresa.findMany();
-      return companies;
+      const companies = await prisma.empresa.findMany({
+        include: {
+          _count: {
+            select: {
+              vagas: true,
+            },
+          },
+        },
+      });
+
+      return companies.map(formatCompany);
     }
   );
 
@@ -38,9 +47,16 @@ export async function companyRoutes(app: FastifyInstance) {
 
       const company = await prisma.empresa.create({
         data,
+        include: {
+          _count: {
+            select: {
+              vagas: true,
+            },
+          },
+        },
       });
 
-      return company;
+      return formatCompany(company);
     }
   );
 
@@ -70,9 +86,16 @@ export async function companyRoutes(app: FastifyInstance) {
           id_empresa: Number(id),
         },
         data,
+        include: {
+          _count: {
+            select: {
+              vagas: true,
+            },
+          },
+        },
       });
 
-      return updatedCompany;
+      return formatCompany(updatedCompany);
     }
   );
 
