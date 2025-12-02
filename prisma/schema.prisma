@@ -27,14 +27,15 @@ model Usuario {
 }
 
 model Empresa {
-  id_empresa   Int      @id @default(autoincrement())
-  cnpj         String   @db.Char(14)
-  nome         String   @db.VarChar(100)
-  endereco     String   @db.VarChar(100)
-  telefone     String   @db.Char(11)
+  id_empresa   Int       @id @default(autoincrement())
+  cnpj         String    @db.Char(14)
+  nome         String    @db.VarChar(100)
+  endereco     String    @db.VarChar(100)
+  telefone     String    @db.Char(11)
   numero_vagas Int
-  valor_hora   Decimal? @db.Decimal(10, 0)
+  valor_hora   Decimal?  @db.Decimal(10, 0)
   vagas        Vaga[]
+  veiculos     Veiculo[]
 
   @@map("empresa")
 }
@@ -46,7 +47,9 @@ model Veiculo {
   cor          String @db.VarChar(50)
   nome_cliente String @db.VarChar(50)
 
-  veiculo_vaga Veiculo_vaga[]
+  veiculo_vaga      Veiculo_vaga[]
+  empresa           Empresa?       @relation(fields: [empresaId_empresa], references: [id_empresa])
+  empresaId_empresa Int?
 
   @@map("veiculo")
 }

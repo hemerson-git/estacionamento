@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { companyExists } from "@/utils/company-exists";
 import { formatCompany } from "@/utils/format-company";
+import { StatusVaga, TipoVaga } from "@prisma/client";
 
 const companySchema = {
   body: z.object({
@@ -45,18 +46,51 @@ export async function companyRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const data = request.body;
 
-      const company = await prisma.empresa.create({
-        data,
-        include: {
-          _count: {
-            select: {
-              vagas: true,
+      try {
+        const result = await prisma.$transaction(async (tx) => {
+          const company = await tx.empresa.create({
+            data: {
+              cnpj: data.cnpj,
+              nome: data.nome,
+              endereco: data.endereco,
+              telefone: data.telefone,
+              numero_vagas: data.numero_vagas,
+              valor_hora: data.valor_hora ?? null,
             },
-          },
-        },
-      });
+          });
 
-      return formatCompany(company);
+          const vagasData = Array.from({ length: data.numero_vagas }).map(
+            (_, index) => ({
+              status: StatusVaga.LIVRE,
+              empresaId: company.id_empresa,
+              tipo: TipoVaga.CARRO,
+              numero: index + 1,
+            })
+          );
+
+          await tx.vaga.createMany({
+            data: vagasData,
+          });
+
+          const fullCompany = await tx.empresa.findFirst({
+            where: { id_empresa: company.id_empresa },
+            include: {
+              _count: {
+                select: { vagas: true },
+              },
+            },
+          });
+
+          return reply.status(200).send({
+            message: "Empresa cadastrada com sucesso",
+            data: formatCompany(fullCompany!),
+          });
+        });
+      } catch (error) {
+        return reply
+          .status(400)
+          .send({ error: "Ocorreu um erro ao cadastrar a empresa!" });
+      }
     }
   );
 
