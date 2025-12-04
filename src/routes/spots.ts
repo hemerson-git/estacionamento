@@ -274,10 +274,8 @@ export async function spotRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const spotId = Number(request.params.spotId);
 
-      const existingSpot = await prisma.vaga.findFirst({
-        where: {
-          id_vaga: spotId,
-        },
+      const existingSpot = await prisma.vaga.findUnique({
+        where: { id_vaga: spotId },
       });
 
       if (!existingSpot) {
@@ -295,6 +293,10 @@ export async function spotRoutes(app: FastifyInstance) {
       const existingVehicle = await prisma.veiculo_vaga.findFirst({
         where: {
           id_vaga: spotId,
+          hora_saida: null,
+        },
+        orderBy: {
+          hora_entrada: "desc",
         },
       });
 
@@ -308,13 +310,10 @@ export async function spotRoutes(app: FastifyInstance) {
 
       await prisma.$transaction([
         prisma.vaga.update({
-          where: {
-            id_vaga: spotId,
-          },
-          data: {
-            status: "LIVRE",
-          },
+          where: { id_vaga: spotId },
+          data: { status: "LIVRE" },
         }),
+
         prisma.veiculo_vaga.update({
           where: {
             id_veiculo_id_vaga_hora_entrada: {
@@ -323,9 +322,7 @@ export async function spotRoutes(app: FastifyInstance) {
               hora_entrada: existingVehicle.hora_entrada,
             },
           },
-          data: {
-            hora_saida: horaSaida,
-          },
+          data: { hora_saida: horaSaida },
         }),
       ]);
 
