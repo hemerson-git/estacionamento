@@ -10,13 +10,15 @@ export const authRoutes = async (app: FastifyInstance) => {
     {
       schema: {
         body: z.object({
-          login: z.string(),
-          senhaHash: z.string(),
+          login: z.string("Login não pode ser vazio"),
+          senha: z
+            .string("A senha não pode ser vazia")
+            .min(4, "A senha deve ter pelo menos 4 caracteres"),
         }),
       },
     },
     async (request, reply) => {
-      const { login, senhaHash } = request.body;
+      const { login, senha } = request.body;
 
       const user = await prisma.usuario.findUnique({
         where: {
@@ -29,7 +31,7 @@ export const authRoutes = async (app: FastifyInstance) => {
         return;
       }
 
-      const passCorrect = await bcrypt.compare(senhaHash, user.senhaHash);
+      const passCorrect = await bcrypt.compare(senha, user.senhaHash);
 
       if (!passCorrect) {
         reply.status(404).send({ message: "Credenciais incorretas" });
@@ -61,14 +63,16 @@ export const authRoutes = async (app: FastifyInstance) => {
     {
       schema: {
         body: z.object({
-          nome: z.string(),
-          login: z.string(),
-          senhaHash: z.string(),
+          nome: z.string("O nome não pode ser vazio"),
+          login: z.string("O login não pode ser vazio"),
+          senha: z
+            .string("A senha não pode ser vazia")
+            .min(4, "A senha deve ter pelo menos 4 caracteres"),
         }),
       },
     },
     async (request, reply) => {
-      const { nome, login, senhaHash } = request.body;
+      const { nome, login, senha } = request.body;
 
       const user = await prisma.usuario.findUnique({
         where: {
@@ -81,7 +85,7 @@ export const authRoutes = async (app: FastifyInstance) => {
         return;
       }
 
-      const hashedPassword = await bcrypt.hash(senhaHash, 10);
+      const hashedPassword = await bcrypt.hash(senha, 10);
 
       await prisma.usuario.create({
         data: {

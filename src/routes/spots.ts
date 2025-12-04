@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { StatusVaga, TipoVaga } from "@prisma/client";
 
+const ObjectIncludesString = (value: string, object: object) => {
+  return Object.keys(object).includes(value);
+};
+
 export async function spotRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
     "/",
@@ -34,15 +38,20 @@ export async function spotRoutes(app: FastifyInstance) {
           numero: z.number(),
           type: z
             .string()
-            .refine((value) => value === "CARRO" || value === "MOTO", {
-              message: "Tipo inválido. Deve ser 'CARRO' ou 'MOTO'.",
-            }),
+            .refine(
+              (value) => value === TipoVaga.CARRO || value === TipoVaga.MOTO,
+              {
+                message: "Tipo inválido. Deve ser 'CARRO' ou 'MOTO'.",
+              }
+            ),
           status: z
             .string()
             .nullable()
             .refine(
               (value) =>
-                value === undefined || value === "LIVRE" || value === "OCUPADA",
+                value === undefined ||
+                value === StatusVaga.LIVRE ||
+                value === StatusVaga.OCUPADA,
               {
                 message: "Status inválido. Deve ser 'LIVRE' ou 'OCUPADA'.",
               }
@@ -96,19 +105,14 @@ export async function spotRoutes(app: FastifyInstance) {
           numero: z.number(),
           type: z
             .string()
-            .refine((value) => value === "CARRO" || value === "MOTO", {
+            .refine((value) => ObjectIncludesString(value, TipoVaga), {
               message: "Tipo inválido. Deve ser 'CARRO' ou 'MOTO'.",
             }),
           status: z
             .string()
-            .nullable()
-            .refine(
-              (value) =>
-                value === undefined || value === "LIVRE" || value === "OCUPADA",
-              {
-                message: "Status inválido. Deve ser 'LIVRE' ou 'OCUPADA'.",
-              }
-            ),
+            .refine((value) => ObjectIncludesString(value, StatusVaga), {
+              message: "Status inválido. Deve ser 'LIVRE' ou 'OCUPADA'.",
+            }),
         }),
         params: z.object({
           spotId: z.string().transform(Number),

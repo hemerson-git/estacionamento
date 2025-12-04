@@ -89,7 +89,7 @@ export async function companyRoutes(app: FastifyInstance) {
       } catch (error) {
         return reply
           .status(400)
-          .send({ error: "Ocorreu um erro ao cadastrar a empresa!" });
+          .send({ message: "Ocorreu um erro ao cadastrar a empresa!" });
       }
     }
   );
@@ -100,7 +100,7 @@ export async function companyRoutes(app: FastifyInstance) {
       preHandler: app.authenticate,
       schema: {
         params: z.object({
-          id: z.string(),
+          id: z.string("Id não pode ser vazio"),
         }),
         body: companySchema.body,
       },
@@ -138,7 +138,7 @@ export async function companyRoutes(app: FastifyInstance) {
     {
       schema: {
         params: z.object({
-          id: z.string(),
+          id: z.string("Id não pode ser vazio"),
         }),
       },
     },
@@ -166,7 +166,7 @@ export async function companyRoutes(app: FastifyInstance) {
     {
       schema: {
         params: z.object({
-          id: z.string(),
+          id: z.string("Id não pode ser vazio"),
         }),
       },
     },
