@@ -21,9 +21,9 @@ export async function vehicleRoutes(app: FastifyInstance) {
             .string()
             .max(7, "Placa inválida. Deve ter no máximo 7 caracteres.")
             .min(7, "Placa inválida. Deve ter no mínimo 7 caracteres."),
-          modelo: z.string(),
-          cor: z.string(),
-          nome_cliente: z.string(),
+          modelo: z.string("O modelo não pode ser vazio"),
+          cor: z.string("A cor não pode ser vazia"),
+          nome_cliente: z.string("O nome do cliente não pode ser vazio"),
         }),
       },
     },
