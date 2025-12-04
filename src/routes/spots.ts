@@ -332,6 +332,7 @@ export async function spotRoutes(app: FastifyInstance) {
       return reply.status(200).send({
         message: "Vaga desocupada com sucesso.",
         saida: horaSaida.toISOString(),
+        hora_entrada: existingVehicle.hora_entrada,
       });
     }
   );
